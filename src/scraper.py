@@ -1,8 +1,9 @@
 import os
-from binascii import crc_hqx
 
 from dotenv import load_dotenv
 from telethon import TelegramClient
+
+from pathlib import Path
 
 # Load variables from the .env file
 load_dotenv()
@@ -26,6 +27,9 @@ CHANNELS = [
 async def scrape_channel(channel_username):
     channel = await client.get_entity(channel_username)
 
+    channel_folder = Path("data/raw/images") / channel_username
+    channel_folder.mkdir(parents=True, exist_ok=True)
+
     print("=" * 50)
     print(f"Channel: {channel.title}")
     print("=" * 50)
@@ -39,8 +43,17 @@ async def scrape_channel(channel_username):
             "forwards": message.forwards,
             "has_media": message.media is not None,
         }
-
         print(message_data)
+
+        if message.photo:
+            image_path = channel_folder / f"{message.id}.jpg"
+
+            await client.download_media(
+                message,
+                file=image_path,
+            )
+
+            print(f"Downloaded image: {image_path}")
 
 
         # print(f"Message ID : {message.id}")
