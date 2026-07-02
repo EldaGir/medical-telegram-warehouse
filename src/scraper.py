@@ -1,4 +1,5 @@
 import os
+from binascii import crc_hqx
 
 from dotenv import load_dotenv
 from telethon import TelegramClient
@@ -14,15 +15,55 @@ PHONE_NUMBER = os.getenv("PHONE_NUMBER")
 # Create a Telegram client
 client = TelegramClient('telegram_session', API_ID, API_HASH)
 
+CHANNELS = [
+    "@CheMed123",
+    "@lobelia4cosmetics",
+    "@tikvahpharma",
+    "@Thequorachannel",
+    "@ETHIOPHARMAINFO",
+]
+
+async def scrape_channel(channel_username):
+    channel = await client.get_entity(channel_username)
+
+    print("=" * 50)
+    print(f"Channel: {channel.title}")
+    print("=" * 50)
+
+    async for message in client.iter_messages(channel, limit=5):
+        message_data = {
+            "message_id": message.id,
+            "date": message.date.isoformat() if message.date else None,
+            "text": message.message,
+            "views": message.views,
+            "forwards": message.forwards,
+            "has_media": message.media is not None,
+        }
+
+        print(message_data)
+
+
+        # print(f"Message ID : {message.id}")
+        # print(f"Date : {message.date}")
+        # print(f"Text : {message.message}")
+        # print(f"Views : {message.views}")
+        # print(f"Forwards : {message.forwards}")
+        # print(f"Has Media : {message.media is not None}")
+
+        print("-" * 50)
+
+
 async def main():
     await client.start(phone=PHONE_NUMBER)
 
-    me = await client.get_me()
+    for channel_username in CHANNELS:
 
-    print("Successfully connected to Telegram!")
-    print(f"Logged in as: {me.first_name}")
-    print(f"Username: {me.username}")
-    print(f"Phone: {me.phone}")
+        channel = await scrape_channel(channel_username)
+
+    # print("Successfully connected!")
+    # print(f"Channel Name: {channel.title}")
+    # print(f"Channel ID: {channel.id}")
+    # print(f"Username: @{channel.username}")
 
 with client:
     client.loop.run_until_complete(main())
